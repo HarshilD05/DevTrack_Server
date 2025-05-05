@@ -8,9 +8,13 @@ class UserModel:
     collection = db["Users"]
 
     @staticmethod
-    def create_user(username, email, password):
+    def create_user(name, username, email, password, accType, institution):
+        print(name, username, email, password, accType, institution)
+
         # Hash the password
         pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        print("Password hash:", pw_hash)
         
         # Check if username or email already exists
         if UserModel.collection.find_one({"$or": [{"username": username}, {"email": email}]}):
@@ -18,10 +22,13 @@ class UserModel:
         
         # Create new user
         user = {
+            "name": name,
             "username": username,
             "email": email,
             "password_hash": pw_hash,
             "verified": True,
+            "account_type": accType,
+            "institution": institution,
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }
@@ -30,8 +37,8 @@ class UserModel:
         return str(result.inserted_id)
     
     @staticmethod
-    def authenticate_user(email, password):
-        user = UserModel.collection.find_one({"email": email})
+    def authenticate_user(username, password):
+        user = UserModel.collection.find_one({"username": username})
         
         if user and bcrypt.checkpw(password.encode('utf-8'), user["password_hash"].encode('utf-8')):
             return user

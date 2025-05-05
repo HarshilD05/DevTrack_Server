@@ -1,9 +1,15 @@
 # app.py
 from flask import Flask
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 import os
 
 # Initialize Flask app
 app = Flask(__name__)
+
+
+JWTManager(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Set App configurations
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
@@ -28,4 +34,4 @@ def index():
     return "Welcome to the Project Management API!"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

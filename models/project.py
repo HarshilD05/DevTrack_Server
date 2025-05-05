@@ -14,7 +14,7 @@ class ProjectModel:
             "creator_id": ObjectId(creator_id),
             "admin_users": [ObjectId(creator_id)],
             "participants": [],
-            "stages": ["Assigned", "In Progress", "Testing", "Review", "Complete"],
+            "stages": ["Assigned", "In Progress", "Review", "Complete"],
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }
@@ -51,8 +51,11 @@ class ProjectModel:
         return result.modified_count > 0
     
     @staticmethod
-    def add_admin(project_id, user_id):
-        user_id_obj = ObjectId(user_id)
+    def add_admin(project_id, username):
+        user = db.users.find_one({"username": username})
+        if not user:
+            return False
+        user_id_obj = user["_id"]
         result = ProjectModel.collection.update_one(
             {"_id": ObjectId(project_id)},
             {
@@ -63,8 +66,11 @@ class ProjectModel:
         return result.modified_count > 0
     
     @staticmethod
-    def add_participant(project_id, user_id):
-        user_id_obj = ObjectId(user_id)
+    def add_participant(project_id, username):
+        user = db.users.find_one({"username": username})
+        if not user:
+            return False
+        user_id_obj = user["_id"]
         result = ProjectModel.collection.update_one(
             {"_id": ObjectId(project_id)},
             {
@@ -75,8 +81,11 @@ class ProjectModel:
         return result.modified_count > 0
     
     @staticmethod
-    def remove_user(project_id, user_id):
-        user_id_obj = ObjectId(user_id)
+    def remove_user(project_id, username):
+        user = db.users.find_one({"username": username})
+        if not user:
+            return False
+        user_id_obj = user["_id"]
         result = ProjectModel.collection.update_one(
             {"_id": ObjectId(project_id)},
             {

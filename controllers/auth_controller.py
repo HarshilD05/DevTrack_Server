@@ -1,20 +1,28 @@
 # controllers/auth_controller.py
+
 from models.user import UserModel
 from flask import request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 import re
+from datetime import timedelta
 
 class AuthController:
     @staticmethod
     def register():
         data = request.get_json()
+
+        req_fields = ["name", "username", "email", "password", "accountType", "institution"]
         
         # Validate input data
-        if not all(key in data for key in ["username", "email", "password"]):
+        if not all(key in data for key in req_fields):
+            print("Missing required fields")
             return jsonify({"error": "Missing required fields"}), 400
         
+        name = data.get("name", None)
+        institution = data.get("institution", None)
+        accType = data.get("accountType", None)
         username = data["username"]
-        email = data["email"]
+        email = data.get("email", None)
         password = data["password"]
         
         # Validate email format
@@ -26,7 +34,7 @@ class AuthController:
             return jsonify({"error": "Password must be at least 8 characters long"}), 400
         
         # Create user
-        user_id = UserModel.create_user(username, email, password)
+        user_id = UserModel.create_user(name, username, email, password, accType, institution)
         if not user_id:
             return jsonify({"error": "Username or email already exists"}), 400
         
@@ -35,21 +43,23 @@ class AuthController:
     @staticmethod
     def login():
         data = request.get_json()
+
+        req_fields = ["username", "password"]
         
         # Validate input data
-        if not all(key in data for key in ["email", "password"]):
-            return jsonify({"error": "Missing email or password"}), 400
+        if not all(key in data for key in req_fields):
+            return jsonify({"error": "Missing username or password"}), 400
         
-        email = data["email"]
+        username = data["username"]
         password = data["password"]
         
         # Authenticate user
-        user = UserModel.authenticate_user(email, password)
+        user = UserModel.authenticate_user(username, password)
         if not user:
-            return jsonify({"error": "Invalid email or password"}), 401
+            return jsonify({"error": "Invalid username or password"}), 401
         
         # Create access token
-        access_token = create_access_token(identity=str(user["_id"]))
+        access_token = create_access_token(identity=str(user["_id"]), expires_delta=timedelta(hours=1))
         
         return jsonify({
             "message": "Login successful",
